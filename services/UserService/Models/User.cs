@@ -21,7 +21,7 @@ public class User
     // Thời gian tạo và cập nhật
     public DateTime CreatedAt { get; set; }
 
-    public DateTime UpdatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     // Quan hệ với Role
     public Role? Role { get; set; }
