@@ -28,16 +28,16 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapGet("/api/db-test", async (UserDbContext db) =>
-{
-    bool connected = await db.Database.CanConnectAsync();
+// app.MapGet("/api/db-test", async (UserDbContext db) =>
+// {
+//     bool connected = await db.Database.CanConnectAsync();
 
-    if (connected)
-    {
-        return Results.Ok("Ket noi UserDB thanh cong!");
-    }
+//     if (connected)
+//     {
+//         return Results.Ok("Ket noi UserDB thanh cong!");
+//     }
 
-    return Results.Problem("Khong the ket noi UserDB");
-});
+//     return Results.Problem("Khong the ket noi UserDB");
+// });
 
 app.Run();
