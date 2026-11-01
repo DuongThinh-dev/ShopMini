@@ -8,7 +8,7 @@ public interface IUserRepository
     Task<IEnumerable<User>> GetAllAsync();
 
     // Tìm User theo ID
-    Task<User?> GetByIdAsync(int id);
+    Task<User?> GetByIdAsync(Guid id);
 
     // Tìm User theo Email
     Task<User?> GetByEmailAsync(string email);

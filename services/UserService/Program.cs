@@ -2,6 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using UserService.Data;
 using UserService.Repositories;
 using UserService.Repositories.Interfaces;
+using UserService.Services;
+using UserService.Services.Interfaces;
+using UserServiceImplementation = UserService.Services.UserService;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<UserDbContext>(options =>
@@ -12,6 +15,9 @@ builder.Services.AddDbContext<UserDbContext>(options =>
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
+builder.Services.AddScoped<IUserService, UserServiceImplementation>();
+
+//-------------------------------------------------------
 // Add services to the container.
 
 builder.Services.AddControllers();
