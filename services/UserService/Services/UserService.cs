@@ -1,3 +1,4 @@
+using UserService.DTOs.Requests;
 using UserService.Models;
 using UserService.Repositories.Interfaces;
 using UserService.Services.Interfaces;
@@ -32,35 +33,41 @@ public class UserService : IUserService
     }
 
     // Tạo User mới
-    public async Task<User> CreateUserAsync(User user)
+    public async Task<User> CreateUserAsync(CreateUserRequestDto request)
     {
-        // Kiểm tra Email đã tồn tại chưa
-        var existingUser = await _userRepository
-            .GetByEmailAsync(user.Email);
+        string email = request.Email.Trim().ToLowerInvariant();
+
+        // Kiểm tra Email đã tồn tại
+        var existingUser = await _userRepository.GetByEmailAsync(email);
 
         if (existingUser != null)
         {
-            throw new InvalidOperationException(
-                "Email đã được sử dụng!"
-            );
+            throw new InvalidOperationException("Email đã được sử dụng!");
         }
 
-        // Khởi tạo thông tin User
-        user.UserId = Guid.NewGuid();
-        user.CreatedAt = DateTime.UtcNow;
-        user.IsActive = true;
+        // Khởi tạo User
+        var user = new User
+        {
+            UserId = Guid.NewGuid(),
+            FullName = request.FullName.Trim(),
+            Email = email,
 
-        // Thêm User vào Database
+            // Băm mật khẩu trước khi lưu
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+
+            RoleId = request.RoleId,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
         await _userRepository.AddAsync(user);
-
-        // Lưu thay đổi
         await _userRepository.SaveChangesAsync();
 
         return user;
     }
 
     // Cập nhật User
-    public async Task<User?> UpdateUserAsync(Guid id, User user)
+    public async Task<User?> UpdateUserAsync(Guid id, UpdateUserRequestDto request)
     {
         var existingUser = await _userRepository.GetByIdAsync(id);
 
@@ -69,9 +76,18 @@ public class UserService : IUserService
             return null;
         }
 
-        // Cập nhật thông tin
-        existingUser.FullName = user.FullName;
-        existingUser.Email = user.Email;
+        string email = request.Email.Trim().ToLowerInvariant();
+
+        // Kiểm tra Email có thuộc tài khoản khác không
+        var emailUser = await _userRepository.GetByEmailAsync(email);
+
+        if (emailUser != null && emailUser.UserId != id)
+        {
+            throw new InvalidOperationException("Email đã được sử dụng!");
+        }
+
+        existingUser.FullName = request.FullName.Trim();
+        existingUser.Email = email;
         existingUser.UpdatedAt = DateTime.UtcNow;
 
         await _userRepository.UpdateAsync(existingUser);

@@ -1,3 +1,4 @@
+using UserService.DTOs.Requests;
 using UserService.Models;
 
 namespace UserService.Services.Interfaces;
@@ -14,10 +15,10 @@ public interface IUserService
     Task<User?> GetUserByEmailAsync(string email);
 
     // Tạo User mới
-    Task<User> CreateUserAsync(User user);
+    Task<User> CreateUserAsync(CreateUserRequestDto request);
 
     // Cập nhật User
-    Task<User?> UpdateUserAsync(Guid id, User user);
+    Task<User?> UpdateUserAsync(Guid id, UpdateUserRequestDto request);
 
     // Xóa User
     Task<bool> DeleteUserAsync(Guid id);
