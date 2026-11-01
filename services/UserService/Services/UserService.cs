@@ -106,7 +106,11 @@ public class UserService : IUserService
             return false;
         }
 
-        await _userRepository.DeleteAsync(user);
+        // Xóa mềm: vô hiệu hóa tài khoản
+        user.IsActive = false;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _userRepository.UpdateAsync(user);
         await _userRepository.SaveChangesAsync();
 
         return true;
