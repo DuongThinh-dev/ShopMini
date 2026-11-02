@@ -21,9 +21,15 @@ public class CategoryRepository : ICategoryRepository
     }
 
     // Tìm danh mục theo ID
+    // public async Task<Category?> GetByIdAsync(Guid id)
+    // {
+    //     return await _context.Categories.FindAsync(id);
+    // }
     public async Task<Category?> GetByIdAsync(Guid id)
     {
-        return await _context.Categories.FindAsync(id);
+        return await _context.Categories
+            .Include(c => c.Products)
+            .FirstOrDefaultAsync(c => c.CategoryId == id);
     }
 
     // Thêm danh mục
@@ -52,5 +58,15 @@ public class CategoryRepository : ICategoryRepository
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+
+    // Kiểm tra tên danh mục đã tồn tại
+    public async Task<bool> ExistsByNameAsync(
+        string name,
+        Guid? excludeId = null)
+    {
+        return await _context.Categories.AnyAsync(c =>
+            c.CategoryName == name &&
+            (!excludeId.HasValue || c.CategoryId != excludeId.Value));
     }
 }

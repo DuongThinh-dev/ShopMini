@@ -15,4 +15,7 @@ public interface ICategoryRepository
     Task DeleteAsync(Category category);
 
     Task SaveChangesAsync();
+
+    // Kiểm tra tên danh mục đã tồn tại
+    Task<bool> ExistsByNameAsync(string name, Guid? excludeId = null);
 }

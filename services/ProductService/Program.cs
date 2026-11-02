@@ -1,10 +1,16 @@
 using ProductService.Repositories;
 using ProductService.Repositories.Interfaces;
+using ProductService.Services;
+using ProductService.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+// Đăng ký Services
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 // Add services to the container.
 
