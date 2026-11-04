@@ -6,6 +6,7 @@ using UserService.Services;
 using UserService.Services.Interfaces;
 using UserServiceImplementation = UserService.Services.UserService;
 
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<UserDbContext>(options =>
     options.UseSqlServer(
@@ -18,6 +19,9 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 builder.Services.AddScoped<IUserService, UserServiceImplementation>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+builder.Services.AddScoped<IAddressService, AddressService>();
 
 //-------------------------------------------------------
 // Add services to the container.
