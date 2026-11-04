@@ -14,8 +14,10 @@ builder.Services.AddDbContext<UserDbContext>(options =>
 );
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 builder.Services.AddScoped<IUserService, UserServiceImplementation>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 
 //-------------------------------------------------------
 // Add services to the container.

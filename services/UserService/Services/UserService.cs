@@ -8,10 +8,14 @@ namespace UserService.Services;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
 
-    public UserService(IUserRepository userRepository)
+    public UserService(
+        IUserRepository userRepository,
+        IRoleRepository roleRepository)
     {
         _userRepository = userRepository;
+        _roleRepository = roleRepository;
     }
 
     // Lấy danh sách tất cả User
@@ -45,6 +49,14 @@ public class UserService : IUserService
             throw new InvalidOperationException("Email đã được sử dụng!");
         }
 
+        // Kiểm tra Role có tồn tại không
+        var role = await _roleRepository.GetByIdAsync(request.RoleId);
+
+        if (role == null)
+        {
+            throw new InvalidOperationException("Role không tồn tại!");
+        }
+
         // Khởi tạo User
         var user = new User
         {
@@ -55,7 +67,7 @@ public class UserService : IUserService
             // Băm mật khẩu trước khi lưu
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
 
-            RoleId = request.RoleId,
+            RoleId = role.RoleId,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
