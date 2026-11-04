@@ -16,11 +16,10 @@ builder.Services.AddDbContext<UserDbContext>(options =>
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 
 builder.Services.AddScoped<IUserService, UserServiceImplementation>();
 builder.Services.AddScoped<IRoleService, RoleService>();
-
-builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 
 //-------------------------------------------------------
