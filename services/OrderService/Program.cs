@@ -1,5 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using OrderService.Data;
+using OrderService.Repositories;
+using OrderService.Repositories.Interfaces;
+using OrderService.Services;
+using OrderService.Services.Interfaces;
+using OrderServiceImplementation = OrderService.Services.OrderService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +14,12 @@ builder.Services.AddDbContext<OrderDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
+
+// Repository
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+// Service
+builder.Services.AddScoped<IOrderService, OrderServiceImplementation>();
 
 // Add services to the container.
 
