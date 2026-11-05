@@ -1,19 +1,16 @@
 
 using Microsoft.EntityFrameworkCore;
 using PaymentService.Models;
-using PaymentService.Models.Enums;
 
 namespace PaymentService.Data;
 
 public class PaymentDbContext : DbContext
 {
-    public PaymentDbContext(
-        DbContextOptions<PaymentDbContext> options)
+    public PaymentDbContext(DbContextOptions<PaymentDbContext> options)
         : base(options)
     {
     }
 
-    // Khai báo bảng Payments
     public DbSet<Payment> Payments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -22,76 +19,56 @@ public class PaymentDbContext : DbContext
 
         modelBuilder.Entity<Payment>(entity =>
         {
-            // Tên bảng
-            entity.ToTable("Payments", table =>
-            {
-                table.HasCheckConstraint(
-                    "CK_Payments_Amount",
-                    "[Amount] > 0"
-                );
-            });
+            entity.ToTable("Payments");
 
-            // Khóa chính
             entity.HasKey(p => p.PaymentId);
 
-            // PaymentId
             entity.Property(p => p.PaymentId)
-                .HasDefaultValueSql("NEWSEQUENTIALID()");
+                .HasDefaultValueSql("NEWSEQUENTIALID()")
+                .ValueGeneratedOnAdd();
 
-            // OrderId
             entity.Property(p => p.OrderId)
                 .IsRequired();
 
-            // Amount
             entity.Property(p => p.Amount)
                 .HasPrecision(18, 2)
                 .IsRequired();
 
-            // PaymentMethod
+            // PaymentMethod -> Method
             entity.Property(p => p.PaymentMethod)
-                .HasConversion<int>()
+                .HasColumnName("Method")
+                .HasConversion<string>()
+                .HasMaxLength(30)
                 .IsRequired();
 
-            // PaymentStatus
+            // PaymentStatus -> Status
             entity.Property(p => p.PaymentStatus)
-                .HasConversion<int>()
-                .HasDefaultValue(PaymentStatus.Pending)
+                .HasColumnName("Status")
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .HasDefaultValueSql("(N'Pending')")
                 .IsRequired();
 
-            // TransactionCode
             entity.Property(p => p.TransactionCode)
                 .HasMaxLength(100)
-                .IsUnicode()
                 .IsRequired(false);
 
-            // FailureReason
-            entity.Property(p => p.FailureReason)
-                .HasMaxLength(500)
-                .IsUnicode()
-                .IsRequired(false);
-
-            // CreatedAt
             entity.Property(p => p.CreatedAt)
-                .HasColumnType("datetime2")
+                .HasColumnType("datetime2(0)")
                 .HasDefaultValueSql("SYSUTCDATETIME()")
-                .IsRequired();
+                .ValueGeneratedOnAdd();
 
-            // UpdatedAt
             entity.Property(p => p.UpdatedAt)
-                .HasColumnType("datetime2")
-                .IsRequired(false);
+                .HasColumnType("datetime2(0)")
+                .HasDefaultValueSql("SYSUTCDATETIME()")
+                .ValueGeneratedOnAdd();
 
-            // PaidAt
-            entity.Property(p => p.PaidAt)
-                .HasColumnType("datetime2")
-                .IsRequired(false);
-
-            // Index tìm kiếm theo OrderId
+            // Mỗi đơn hàng chỉ có một giao dịch
             entity.HasIndex(p => p.OrderId)
-                .HasDatabaseName("IX_Payments_OrderId");
+                .IsUnique()
+                .HasDatabaseName("UX_Payments_OrderId");
 
-            // Không cho phép trùng TransactionCode
-            // khi TransactionCode có giá trị
+            // TransactionCode duy nhất nếu khác NULL
             entity.HasIndex(p => p.TransactionCode)
                 .IsUnique()
                 .HasFilter("[TransactionCode] IS NOT NULL")

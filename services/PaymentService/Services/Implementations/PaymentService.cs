@@ -77,7 +77,7 @@ public class PaymentService : IPaymentService
             );
         }
 
-        // Kiểm tra đơn hàng đã có giao dịch thanh toán chưa
+        // Kiểm tra đơn hàng đã có giao dịch chưa
         var existingPayment =
             await _paymentRepository.GetByOrderIdAsync(orderId);
 
@@ -94,13 +94,15 @@ public class PaymentService : IPaymentService
             OrderId = orderId,
             Amount = amount,
             PaymentMethod = paymentMethod,
-            PaymentStatus = PaymentStatus.Pending
+            PaymentStatus = PaymentStatus.Pending,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
-        // Thêm giao dịch vào database
+        // Thêm giao dịch
         await _paymentRepository.AddAsync(payment);
 
-        // Lưu thay đổi
+        // Lưu database
         await _paymentRepository.SaveChangesAsync();
 
         return payment;
@@ -110,8 +112,7 @@ public class PaymentService : IPaymentService
     public async Task<Payment> UpdatePaymentStatusAsync(
         Guid paymentId,
         PaymentStatus newStatus,
-        string? transactionCode = null,
-        string? failureReason = null)
+        string? transactionCode = null)
     {
         // Kiểm tra PaymentId
         if (paymentId == Guid.Empty)
@@ -129,14 +130,6 @@ public class PaymentService : IPaymentService
             );
         }
 
-        // Chỉ cho phép cập nhật sang các trạng thái kết thúc
-        if (newStatus == PaymentStatus.Pending)
-        {
-            throw new InvalidOperationException(
-                "Không thể cập nhật giao dịch về trạng thái Pending."
-            );
-        }
-
         // Tìm giao dịch
         var payment = await _paymentRepository.GetByIdAsync(paymentId);
 
@@ -147,28 +140,16 @@ public class PaymentService : IPaymentService
             );
         }
 
-        // Chuẩn hóa dữ liệu đầu vào
+        // Chuẩn hóa TransactionCode
         transactionCode = string.IsNullOrWhiteSpace(transactionCode)
             ? null
             : transactionCode.Trim();
-
-        failureReason = string.IsNullOrWhiteSpace(failureReason)
-            ? null
-            : failureReason.Trim();
 
         // Kiểm tra độ dài TransactionCode
         if (transactionCode?.Length > 100)
         {
             throw new ArgumentException(
                 "TransactionCode không được vượt quá 100 ký tự."
-            );
-        }
-
-        // Kiểm tra độ dài FailureReason
-        if (failureReason?.Length > 500)
-        {
-            throw new ArgumentException(
-                "FailureReason không được vượt quá 500 ký tự."
             );
         }
 
@@ -181,69 +162,19 @@ public class PaymentService : IPaymentService
             );
         }
 
-        // Nếu giao dịch đã ở trạng thái yêu cầu,
-        // không cần cập nhật lại
-        if (payment.PaymentStatus == newStatus)
-        {
-            return payment;
-        }
-
-        // Kiểm tra lý do thất bại
-        if (newStatus == PaymentStatus.Failed &&
-            string.IsNullOrWhiteSpace(failureReason))
-        {
-            throw new ArgumentException(
-                "Vui lòng cung cấp lý do thanh toán thất bại."
-            );
-        }
-
         // Cập nhật trạng thái
         payment.PaymentStatus = newStatus;
 
-        // Cập nhật thời gian thay đổi
-        payment.UpdatedAt = DateTime.UtcNow;
-
-        // Xử lý theo trạng thái mới
-        switch (newStatus)
+        // Cập nhật TransactionCode nếu có
+        if (transactionCode != null)
         {
-            case PaymentStatus.Completed:
-
-                payment.PaidAt = DateTime.UtcNow;
-
-                payment.FailureReason = null;
-
-                if (transactionCode != null)
-                {
-                    payment.TransactionCode = transactionCode;
-                }
-
-                break;
-
-            case PaymentStatus.Failed:
-
-                payment.FailureReason = failureReason;
-
-                if (transactionCode != null)
-                {
-                    payment.TransactionCode = transactionCode;
-                }
-
-                break;
-
-            case PaymentStatus.Cancelled:
-
-                payment.FailureReason = null;
-
-                break;
-
-            case PaymentStatus.Refunded:
-
-                // Giữ lại PaidAt và TransactionCode
-                // để bảo toàn thông tin giao dịch gốc.
-                break;
+            payment.TransactionCode = transactionCode;
         }
 
-        // Cập nhật database
+        // Cập nhật thời gian
+        payment.UpdatedAt = DateTime.UtcNow;
+
+        // Lưu database
         _paymentRepository.Update(payment);
 
         await _paymentRepository.SaveChangesAsync();
@@ -251,7 +182,7 @@ public class PaymentService : IPaymentService
         return payment;
     }
 
-    // Kiểm tra quy tắc chuyển trạng thái
+    // 6. Kiểm tra quy tắc chuyển trạng thái
     private static bool CanTransition(
         PaymentStatus currentStatus,
         PaymentStatus newStatus)
@@ -259,18 +190,15 @@ public class PaymentService : IPaymentService
         return currentStatus switch
         {
             PaymentStatus.Pending =>
-                newStatus == PaymentStatus.Completed ||
-                newStatus == PaymentStatus.Failed ||
-                newStatus == PaymentStatus.Cancelled,
+                newStatus == PaymentStatus.Paid ||
+                newStatus == PaymentStatus.Failed,
 
-            PaymentStatus.Completed =>
+            PaymentStatus.Paid =>
                 newStatus == PaymentStatus.Refunded,
 
-            // Các trạng thái kết thúc không được
-            // chuyển sang trạng thái khác.
-            PaymentStatus.Failed => false,
+            PaymentStatus.Unpaid => false,
 
-            PaymentStatus.Cancelled => false,
+            PaymentStatus.Failed => false,
 
             PaymentStatus.Refunded => false,
 

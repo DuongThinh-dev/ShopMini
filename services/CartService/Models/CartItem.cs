@@ -10,7 +10,7 @@ public class CartItem
 
     public int Quantity { get; set; }
 
-    public DateTime AddedAt { get; set; }
+    // public DateTime AddedAt { get; set; }
 
     // Navigation Property
     public Cart Cart { get; set; } = null!;

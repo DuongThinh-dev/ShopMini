@@ -114,6 +114,7 @@ public class PaymentController : ControllerBase
         }
     }
 
+    
     // PUT: api/payments/{id}/status
     // Cập nhật trạng thái giao dịch thanh toán
     [HttpPut("{id:guid}/status")]
@@ -123,15 +124,12 @@ public class PaymentController : ControllerBase
     {
         try
         {
-            // Request DTO -> Service -> Entity
             var payment = await _paymentService.UpdatePaymentStatusAsync(
                 id,
                 request.PaymentStatus,
-                request.TransactionCode,
-                request.FailureReason
+                request.TransactionCode
             );
 
-            // Entity -> Response DTO
             var response = PaymentResponse.FromEntity(payment);
 
             return Ok(response);
@@ -152,7 +150,6 @@ public class PaymentController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            // Ví dụ: không cho phép chuyển từ Failed sang Completed
             return Conflict(new
             {
                 message = ex.Message

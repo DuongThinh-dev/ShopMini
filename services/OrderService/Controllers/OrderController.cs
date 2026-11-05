@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Mvc;
 using OrderService.DTOs.Order;
 using OrderService.Models;
@@ -22,39 +23,43 @@ public class OrderController : ControllerBase
     {
         var orders = await _orderService.GetAllAsync();
 
-        var response = orders.Select(MapToResponse).ToList();
-
-        return Ok(response);
+        return Ok(orders.Select(MapToResponse).ToList());
     }
 
     // GET: api/orders/{id}
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<OrderResponse>> GetById(Guid id)
     {
-        var order = await _orderService.GetByIdAsync(id);
-
-        if (order == null)
+        try
         {
-            return NotFound(new
-            {
-                message = "Không tìm thấy đơn hàng."
-            });
-        }
+            var order = await _orderService.GetByIdAsync(id);
 
-        return Ok(MapToResponse(order));
+            if (order == null)
+            {
+                return NotFound(new
+                {
+                    message = "Không tìm thấy đơn hàng."
+                });
+            }
+
+            return Ok(MapToResponse(order));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     // GET: api/orders/user/{userId}
     [HttpGet("user/{userId:guid}")]
-    public async Task<ActionResult<List<OrderResponse>>> GetByUserId(Guid userId)
+    public async Task<ActionResult<List<OrderResponse>>> GetByUserId(
+        Guid userId)
     {
         try
         {
             var orders = await _orderService.GetByUserIdAsync(userId);
 
-            var response = orders.Select(MapToResponse).ToList();
-
-            return Ok(response);
+            return Ok(orders.Select(MapToResponse).ToList());
         }
         catch (ArgumentException ex)
         {
@@ -69,26 +74,27 @@ public class OrderController : ControllerBase
     {
         try
         {
-            // 1. Ánh xạ Request DTO -> Entity
+            // Request DTO -> Entity
             var order = new Order
             {
                 UserId = request.UserId,
+                ReceiverName = request.ReceiverName,
+                Phone = request.Phone,
                 ShippingAddress = request.ShippingAddress,
-                Note = request.Note,
 
-                OrderItems = request.OrderItems.Select(item => new OrderItem
-                {
-                    ProductId = item.ProductId,
-                    ProductName = item.ProductName,
-                    UnitPrice = item.UnitPrice,
-                    Quantity = item.Quantity
-                }).ToList()
+                OrderItems = request.OrderItems.Select(item =>
+                    new OrderItem
+                    {
+                        ProductId = item.ProductId,
+                        ProductName = item.ProductName,
+                        UnitPrice = item.UnitPrice,
+                        Quantity = item.Quantity
+                    }).ToList()
             };
 
-            // 2. Gọi Service để xử lý nghiệp vụ và lưu dữ liệu
             var createdOrder = await _orderService.CreateAsync(order);
 
-            // 3. Ánh xạ Entity -> Response DTO
+            // Entity -> Response DTO
             var response = MapToResponse(createdOrder);
 
             return CreatedAtAction(
@@ -115,8 +121,9 @@ public class OrderController : ControllerBase
             var order = new Order
             {
                 OrderId = id,
-                ShippingAddress = request.ShippingAddress,
-                Note = request.Note
+                ReceiverName = request.ReceiverName,
+                Phone = request.Phone,
+                ShippingAddress = request.ShippingAddress
             };
 
             var updatedOrder = await _orderService.UpdateAsync(order);
@@ -125,11 +132,10 @@ public class OrderController : ControllerBase
             {
                 return NotFound(new
                 {
-                    message = "Không tìm thấy đơn hàng hoặc đơn hàng không thể cập nhật."
+                    message = "Không tìm thấy đơn hàng."
                 });
             }
 
-            // Entity -> Response DTO
             return Ok(MapToResponse(updatedOrder));
         }
         catch (ArgumentException ex)
@@ -212,21 +218,26 @@ public class OrderController : ControllerBase
         {
             OrderId = order.OrderId,
             UserId = order.UserId,
-            OrderDate = order.OrderDate,
             TotalAmount = order.TotalAmount,
-            Status = order.Status,
-            ShippingAddress = order.ShippingAddress,
-            Note = order.Note,
 
-            OrderItems = order.OrderItems.Select(item => new OrderItemResponse
-            {
-                OrderItemId = item.OrderItemId,
-                ProductId = item.ProductId,
-                ProductName = item.ProductName,
-                UnitPrice = item.UnitPrice,
-                Quantity = item.Quantity,
-                Subtotal = item.Subtotal
-            }).ToList()
+            ReceiverName = order.ReceiverName,
+            Phone = order.Phone,
+            ShippingAddress = order.ShippingAddress,
+
+            Status = order.Status,
+            CreatedAt = order.CreatedAt,
+            UpdatedAt = order.UpdatedAt,
+
+            OrderItems = order.OrderItems.Select(item =>
+                new OrderItemResponse
+                {
+                    OrderItemId = item.OrderItemId,
+                    ProductId = item.ProductId,
+                    ProductName = item.ProductName,
+                    UnitPrice = item.UnitPrice,
+                    Quantity = item.Quantity,
+                    Subtotal = item.Subtotal
+                }).ToList()
         };
     }
 }

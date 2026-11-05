@@ -8,5 +8,5 @@ public class CartItemResponse
 
     public int Quantity { get; set; }
 
-    public DateTime AddedAt { get; set; }
+    // public DateTime AddedAt { get; set; }
 }

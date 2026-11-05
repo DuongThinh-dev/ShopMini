@@ -1,3 +1,4 @@
+
 namespace OrderService.Models;
 
 public class Order
@@ -6,15 +7,19 @@ public class Order
 
     public Guid UserId { get; set; }
 
-    public DateTime OrderDate { get; set; } = DateTime.UtcNow;
-
     public decimal TotalAmount { get; set; }
 
-    public OrderStatus Status { get; set; } = OrderStatus.Pending;
+    public string ReceiverName { get; set; } = string.Empty;
+
+    public string Phone { get; set; } = string.Empty;
 
     public string ShippingAddress { get; set; } = string.Empty;
 
-    public string? Note { get; set; }
+    public OrderStatus Status { get; set; } = OrderStatus.PendingPayment;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation Property
     public ICollection<OrderItem> OrderItems { get; set; }

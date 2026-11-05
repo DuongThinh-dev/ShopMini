@@ -15,16 +15,22 @@ public class OrderRepository : IOrderRepository
         _context = context;
     }
 
-    // Lấy tất cả đơn hàng
+    // ==========================================
+    // LẤY TẤT CẢ ĐƠN HÀNG
+    // ==========================================
+
     public async Task<List<Order>> GetAllAsync()
     {
         return await _context.Orders
             .Include(o => o.OrderItems)
-            .OrderByDescending(o => o.OrderDate)
+            .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
     }
 
-    // Lấy đơn hàng theo ID
+    // ==========================================
+    // LẤY ĐƠN HÀNG THEO ID
+    // ==========================================
+
     public async Task<Order?> GetByIdAsync(Guid orderId)
     {
         return await _context.Orders
@@ -32,23 +38,32 @@ public class OrderRepository : IOrderRepository
             .FirstOrDefaultAsync(o => o.OrderId == orderId);
     }
 
-    // Lấy danh sách đơn hàng theo UserId
+    // ==========================================
+    // LẤY DANH SÁCH ĐƠN HÀNG THEO USER ID
+    // ==========================================
+
     public async Task<List<Order>> GetByUserIdAsync(Guid userId)
     {
         return await _context.Orders
             .Include(o => o.OrderItems)
             .Where(o => o.UserId == userId)
-            .OrderByDescending(o => o.OrderDate)
+            .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
     }
 
-    // Thêm đơn hàng
+    // ==========================================
+    // THÊM ĐƠN HÀNG
+    // ==========================================
+
     public async Task AddAsync(Order order)
     {
         await _context.Orders.AddAsync(order);
     }
 
-    // Cập nhật đơn hàng
+    // ==========================================
+    // CẬP NHẬT ĐƠN HÀNG
+    // ==========================================
+
     public Task UpdateAsync(Order order)
     {
         _context.Orders.Update(order);
@@ -56,7 +71,10 @@ public class OrderRepository : IOrderRepository
         return Task.CompletedTask;
     }
 
-    // Xóa đơn hàng
+    // ==========================================
+    // XÓA ĐƠN HÀNG
+    // ==========================================
+
     public Task DeleteAsync(Order order)
     {
         _context.Orders.Remove(order);
@@ -64,7 +82,10 @@ public class OrderRepository : IOrderRepository
         return Task.CompletedTask;
     }
 
-    // Lưu thay đổi vào database
+    // ==========================================
+    // LƯU THAY ĐỔI
+    // ==========================================
+
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();

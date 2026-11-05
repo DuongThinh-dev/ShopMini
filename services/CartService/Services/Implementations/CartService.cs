@@ -55,8 +55,8 @@ public class CartService : ICartService
                 CartItemId = Guid.NewGuid(),
                 CartId = cart.CartId,
                 ProductId = productId,
-                Quantity = quantity,
-                AddedAt = DateTime.UtcNow
+                Quantity = quantity
+                // AddedAt = DateTime.UtcNow
             };
 
             await _cartRepository.AddCartItemAsync(cartItem);

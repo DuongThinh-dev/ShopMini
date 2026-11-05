@@ -26,7 +26,6 @@ public interface IPaymentService
     Task<Payment> UpdatePaymentStatusAsync(
         Guid paymentId,
         PaymentStatus newStatus,
-        string? transactionCode = null,
-        string? failureReason = null
+        string? transactionCode = null
     );
 }

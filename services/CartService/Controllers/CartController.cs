@@ -143,8 +143,8 @@ public class CartController : ControllerBase
             {
                 CartItemId = item.CartItemId,
                 ProductId = item.ProductId,
-                Quantity = item.Quantity,
-                AddedAt = item.AddedAt
+                Quantity = item.Quantity
+                // AddedAt = item.AddedAt
             }).ToList()
         };
     }

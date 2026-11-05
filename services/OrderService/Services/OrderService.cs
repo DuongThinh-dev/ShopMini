@@ -38,7 +38,7 @@ public class OrderService : IOrderService
     }
 
     // ==========================================
-    // LẤY DANH SÁCH ĐƠN HÀNG THEO USER ID
+    // LẤY ĐƠN HÀNG THEO USER ID
     // ==========================================
 
     public async Task<List<Order>> GetByUserIdAsync(Guid userId)
@@ -67,6 +67,26 @@ public class OrderService : IOrderService
             throw new ArgumentException("UserId không hợp lệ.");
         }
 
+        if (string.IsNullOrWhiteSpace(order.ReceiverName))
+        {
+            throw new ArgumentException("Tên người nhận không được để trống.");
+        }
+
+        if (order.ReceiverName.Length > 100)
+        {
+            throw new ArgumentException("Tên người nhận không được vượt quá 100 ký tự.");
+        }
+
+        if (string.IsNullOrWhiteSpace(order.Phone))
+        {
+            throw new ArgumentException("Số điện thoại không được để trống.");
+        }
+
+        if (order.Phone.Length > 15)
+        {
+            throw new ArgumentException("Số điện thoại không được vượt quá 15 ký tự.");
+        }
+
         if (string.IsNullOrWhiteSpace(order.ShippingAddress))
         {
             throw new ArgumentException("Địa chỉ giao hàng không được để trống.");
@@ -75,11 +95,6 @@ public class OrderService : IOrderService
         if (order.ShippingAddress.Length > 500)
         {
             throw new ArgumentException("Địa chỉ giao hàng không được vượt quá 500 ký tự.");
-        }
-
-        if (order.Note?.Length > 500)
-        {
-            throw new ArgumentException("Ghi chú không được vượt quá 500 ký tự.");
         }
 
         if (order.OrderItems == null || !order.OrderItems.Any())
@@ -116,29 +131,35 @@ public class OrderService : IOrderService
                 throw new ArgumentException("Số lượng sản phẩm phải lớn hơn 0.");
             }
 
-            // Tính thành tiền của từng sản phẩm
-            item.OrderItemId = Guid.NewGuid();
-            item.Subtotal = item.UnitPrice * item.Quantity;
+            // item.OrderItemId = Guid.NewGuid();
+            // item.Subtotal = item.UnitPrice * item.Quantity;
 
-            totalAmount += item.Subtotal;
+            // totalAmount += item.Subtotal;
+
+            item.OrderItemId = Guid.NewGuid();
+
+            // Tính tổng tiền đơn hàng
+            decimal subtotal = item.UnitPrice * item.Quantity;
+
+            totalAmount += subtotal;
         }
 
         // Thiết lập thông tin đơn hàng
         order.OrderId = Guid.NewGuid();
-        order.OrderDate = DateTime.UtcNow;
-        order.TotalAmount = totalAmount;
-        order.Status = OrderStatus.Pending;
+        order.CreatedAt = DateTime.UtcNow;
+        order.UpdatedAt = DateTime.UtcNow;
+        order.Status = OrderStatus.PendingConfirmation;
 
-        // Gán OrderId cho các OrderItem
+        // Chờ thanh toán
+        order.Status = OrderStatus.PendingPayment;
+
+        // Gán OrderId cho OrderItems
         foreach (var item in order.OrderItems)
         {
             item.OrderId = order.OrderId;
         }
 
-        // Thêm đơn hàng vào database
         await _orderRepository.AddAsync(order);
-
-        // Lưu thay đổi
         await _orderRepository.SaveChangesAsync();
 
         return order;
@@ -160,6 +181,26 @@ public class OrderService : IOrderService
             throw new ArgumentException("OrderId không hợp lệ.");
         }
 
+        if (string.IsNullOrWhiteSpace(order.ReceiverName))
+        {
+            throw new ArgumentException("Tên người nhận không được để trống.");
+        }
+
+        if (order.ReceiverName.Length > 100)
+        {
+            throw new ArgumentException("Tên người nhận không được vượt quá 100 ký tự.");
+        }
+
+        if (string.IsNullOrWhiteSpace(order.Phone))
+        {
+            throw new ArgumentException("Số điện thoại không được để trống.");
+        }
+
+        if (order.Phone.Length > 15)
+        {
+            throw new ArgumentException("Số điện thoại không được vượt quá 15 ký tự.");
+        }
+
         if (string.IsNullOrWhiteSpace(order.ShippingAddress))
         {
             throw new ArgumentException("Địa chỉ giao hàng không được để trống.");
@@ -170,11 +211,6 @@ public class OrderService : IOrderService
             throw new ArgumentException("Địa chỉ giao hàng không được vượt quá 500 ký tự.");
         }
 
-        if (order.Note?.Length > 500)
-        {
-            throw new ArgumentException("Ghi chú không được vượt quá 500 ký tự.");
-        }
-
         var existingOrder = await _orderRepository.GetByIdAsync(order.OrderId);
 
         if (existingOrder == null)
@@ -182,17 +218,18 @@ public class OrderService : IOrderService
             return null;
         }
 
-        // Chỉ cho phép cập nhật khi đơn hàng đang chờ xác nhận
-        if (existingOrder.Status != OrderStatus.Pending)
+        // Chỉ cập nhật khi đơn hàng đang chờ xác nhận
+        if (existingOrder.Status != OrderStatus.PendingConfirmation)
         {
             throw new InvalidOperationException(
                 "Chỉ có thể cập nhật đơn hàng đang chờ xác nhận."
             );
         }
 
-        // Chỉ cập nhật thông tin giao hàng và ghi chú
+        existingOrder.ReceiverName = order.ReceiverName;
+        existingOrder.Phone = order.Phone;
         existingOrder.ShippingAddress = order.ShippingAddress;
-        existingOrder.Note = order.Note;
+        existingOrder.UpdatedAt = DateTime.UtcNow;
 
         await _orderRepository.UpdateAsync(existingOrder);
         await _orderRepository.SaveChangesAsync();
@@ -227,15 +264,17 @@ public class OrderService : IOrderService
 
         bool isValidTransition = (order.Status, status) switch
         {
-            (OrderStatus.Pending, OrderStatus.Confirmed) => true,
+            (OrderStatus.PendingPayment, OrderStatus.PaymentFailed) => true,
 
-            (OrderStatus.Confirmed, OrderStatus.Processing) => true,
+            (OrderStatus.PendingPayment, OrderStatus.PendingConfirmation) => true,
 
-            (OrderStatus.Processing, OrderStatus.Shipped) => true,
+            (OrderStatus.PendingConfirmation, OrderStatus.Confirmed) => true,
 
-            (OrderStatus.Shipped, OrderStatus.Delivered) => true,
+            (OrderStatus.Confirmed, OrderStatus.Shipping) => true,
 
-            (OrderStatus.Pending, OrderStatus.Cancelled) => true,
+            (OrderStatus.Shipping, OrderStatus.Completed) => true,
+
+            (OrderStatus.PendingConfirmation, OrderStatus.Cancelled) => true,
 
             (OrderStatus.Confirmed, OrderStatus.Cancelled) => true,
 
@@ -250,6 +289,7 @@ public class OrderService : IOrderService
         }
 
         order.Status = status;
+        order.UpdatedAt = DateTime.UtcNow;
 
         await _orderRepository.UpdateAsync(order);
         await _orderRepository.SaveChangesAsync();
@@ -275,7 +315,8 @@ public class OrderService : IOrderService
             return null;
         }
 
-        if (order.Status != OrderStatus.Pending &&
+        if (order.Status != OrderStatus.PendingPayment &&
+            order.Status != OrderStatus.PendingConfirmation &&
             order.Status != OrderStatus.Confirmed)
         {
             throw new InvalidOperationException(
@@ -284,6 +325,7 @@ public class OrderService : IOrderService
         }
 
         order.Status = OrderStatus.Cancelled;
+        order.UpdatedAt = DateTime.UtcNow;
 
         await _orderRepository.UpdateAsync(order);
         await _orderRepository.SaveChangesAsync();
