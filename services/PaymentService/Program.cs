@@ -1,5 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using PaymentService.Data;
+using PaymentService.Repositories.Interfaces;
+using PaymentService.Repositories.Implementations;
+using PaymentService.Services.Interfaces;
+using PaymentService.Services.Implementations;
+using PaymentServiceImplementation = PaymentService.Services.Implementations.PaymentService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +15,8 @@ builder.Services.AddDbContext<PaymentDbContext>(options =>
     )
 );
 
-
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IPaymentService, PaymentServiceImplementation>();
 
 // Add services to the container.
 
