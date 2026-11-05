@@ -1,4 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using PaymentService.Data;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Đăng ký PaymentDbContext
+builder.Services.AddDbContext<PaymentDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    )
+);
+
+
 
 // Add services to the container.
 
