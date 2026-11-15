@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng điều khiển Admin — ShopMini</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-modern sticky-top">
+        <div class="container gap-3">
+            <a class="navbar-brand brand-logo" href="../index.html">
+                <span class="brand-icon"><i class="fa-solid fa-shield-halved"></i></span>
+                <span>Shop<span class="text-primary">Mini</span> <span class="badge bg-warning text-dark fs-6 ms-1">Admin</span></span>
+            </a>
+
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse flex-grow-0" id="mainNav">
+                <ul class="navbar-nav align-items-lg-center gap-lg-2 mt-3 mt-lg-0">
+                    <li class="nav-item"><a class="nav-link fw-semibold" href="../index.html"><i class="fa-solid fa-store me-1"></i>Xem cửa hàng</a></li>
+                    <li class="nav-item ms-lg-2" id="auth-nav-slot"></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+                <h3 class="fw-bold mb-1">Bảng điều khiển Quản trị</h3>
+                <p class="text-muted small mb-0">Theo dõi doanh thu, sản phẩm đã bán, xử lý đơn hàng và quản lý kho sản phẩm</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary rounded-pill px-3" onclick="loadAdminDashboard()">
+                    <i class="fa-solid fa-rotate me-1"></i> Làm mới dữ liệu
+                </button>
+                <button class="btn btn-primary-modern rounded-pill px-4" onclick="openProductModal()">
+                    <i class="fa-solid fa-plus me-1"></i> Thêm sản phẩm mới
+                </button>
+            </div>
+        </div>
+
+        <!-- 4 Thẻ KPI Doanh thu & Sản phẩm -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="feature-icon bg-success-subtle text-success"><i class="fa-solid fa-sack-dollar"></i></div>
+                        <span class="text-muted small fw-semibold">Tổng doanh thu</span>
+                    </div>
+                    <h4 id="kpi-revenue" class="fw-extrabold text-success mb-1">0 ₫</h4>
+                    <small id="kpi-paid-revenue" class="text-muted" style="font-size:0.78rem;">Đã thu tiền: 0 ₫</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="feature-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                        <span class="text-muted small fw-semibold">Sản phẩm đã bán</span>
+                    </div>
+                    <h4 id="kpi-sold-qty" class="fw-extrabold text-primary mb-1">0</h4>
+                    <small class="text-muted" style="font-size:0.78rem;">Tổng số lượng từ đơn hợp lệ</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="feature-icon bg-warning-subtle text-warning"><i class="fa-solid fa-receipt"></i></div>
+                        <span class="text-muted small fw-semibold">Tổng đơn hàng</span>
+                    </div>
+                    <h4 id="kpi-total-orders" class="fw-extrabold text-dark mb-1">0</h4>
+                    <small id="kpi-pending-orders" class="text-muted" style="font-size:0.78rem;">Chờ xử lý: 0</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="feature-icon bg-info-subtle text-info"><i class="fa-solid fa-tags"></i></div>
+                        <span class="text-muted small fw-semibold">Sản phẩm trong kho</span>
+                    </div>
+                    <h4 id="kpi-total-products" class="fw-extrabold text-dark mb-1">0</h4>
+                    <small id="kpi-total-stock" class="text-muted" style="font-size:0.78rem;">Tổng tồn kho: 0</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Điều hướng Quản trị -->
+        <ul class="nav nav-pills bg-white p-2 rounded-4 shadow-sm mb-4 gap-2" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active rounded-pill px-4 fw-semibold" data-bs-toggle="pill" data-bs-target="#admin-tab-products" type="button">
+                    <i class="fa-solid fa-box-open me-2"></i>Quản lý Sản phẩm (Thêm / Sửa / Xóa)
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link rounded-pill px-4 fw-semibold" data-bs-toggle="pill" data-bs-target="#admin-tab-orders" type="button">
+                    <i class="fa-solid fa-truck-fast me-2"></i>Tình trạng Đơn hàng
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link rounded-pill px-4 fw-semibold" data-bs-toggle="pill" data-bs-target="#admin-tab-sales" type="button">
+                    <i class="fa-solid fa-chart-bar me-2"></i>Thống kê Sản phẩm đã bán
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- Tab 1: Quản lý Sản phẩm -->
+            <div class="tab-pane fade show active" id="admin-tab-products">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="p-3 bg-white border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <input type="text" id="admin-product-search" class="form-control bg-light" style="max-width: 320px;" placeholder="Tìm tên sản phẩm..." oninput="renderAdminProductsTable()">
+                        <span id="admin-product-count" class="small text-muted fw-semibold">0 sản phẩm</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Danh mục</th>
+                                    <th>Giá bán</th>
+                                    <th>Tồn kho</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-products-body">
+                                <tr><td colspan="6" class="text-center py-4">Đang tải sản phẩm...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Quản lý Tình trạng Đơn hàng -->
+            <div class="tab-pane fade" id="admin-tab-orders">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mã đơn & Khách hàng</th>
+                                    <th>Sản phẩm đặt mua</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Thanh toán</th>
+                                    <th>Trạng thái đơn</th>
+                                    <th class="text-end">Cập nhật trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-orders-body">
+                                <tr><td colspan="6" class="text-center py-4">Đang tải danh sách đơn hàng...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Thống kê Sản phẩm đã bán -->
+            <div class="tab-pane fade" id="admin-tab-sales">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Hạng</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th class="text-center">Số lượng đã bán</th>
+                                    <th class="text-end">Doanh thu mang lại</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-sales-body">
+                                <tr><td colspan="4" class="text-center py-4">Đang tổng hợp dữ liệu...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Thêm / Sửa Sản phẩm -->
+    <div class="modal fade" id="productFormModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold" id="product-modal-title">Thêm sản phẩm mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form onsubmit="handleSaveProduct(event)">
+                    <div class="modal-body pt-0">
+                        <input type="hidden" id="prod-id">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Tên sản phẩm *</label>
+                            <input type="text" id="prod-name" class="form-control" required placeholder="VD: Bàn phím cơ Aula F75">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Danh mục *</label>
+                            <select id="prod-category" class="form-select" required></select>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Giá bán (VND) *</label>
+                                <input type="number" id="prod-price" class="form-control" min="1000" step="1000" required placeholder="850000">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Số lượng tồn kho *</label>
+                                <input type="number" id="prod-stock" class="form-control" min="0" required placeholder="50">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">URL Hình ảnh (tùy chọn)</label>
+                            <input type="text" id="prod-image" class="form-control" placeholder="/images/aula-f75.jpg hoặc https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Mô tả sản phẩm</label>
+                            <textarea id="prod-desc" class="form-control" rows="2" placeholder="Thông số kỹ thuật, chất liệu..."></textarea>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="prod-active" checked>
+                            <label class="form-check-label small fw-semibold" for="prod-active">Đang mở bán trên cửa hàng</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" id="btn-save-product" class="btn btn-primary-modern px-4">Lưu sản phẩm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xem Chi Tiết & Tình Trạng Đơn Hàng -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h5 class="modal-title fw-bold mb-1"><i class="fa-solid fa-receipt text-primary me-2"></i>Chi tiết & Tình trạng Đơn hàng</h5>
+                        <p class="text-muted small mb-0" id="modal-order-id-label">Mã đơn hàng: ...</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Stepper tiến trình đơn hàng trực quan -->
+                    <div id="modal-order-stepper" class="my-3"></div>
+
+                    <!-- Thông tin khách hàng & giao nhận -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 h-100">
+                                <div class="small text-muted fw-semibold mb-1"><i class="fa-solid fa-user me-1 text-primary"></i> Khách hàng nhận hàng</div>
+                                <div class="fw-bold" id="modal-receiver-name">...</div>
+                                <div class="small text-muted" id="modal-receiver-phone">...</div>
+                                <div class="small mt-1 text-secondary" id="modal-shipping-address">...</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 h-100">
+                                <div class="small text-muted fw-semibold mb-1"><i class="fa-solid fa-credit-card me-1 text-success"></i> Thông tin thanh toán</div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="small text-muted">Phương thức:</span>
+                                    <span class="fw-bold small" id="modal-payment-method">...</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="small text-muted">Trạng thái:</span>
+                                    <span id="modal-payment-status">...</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="small text-muted">Mã GD:</span>
+                                    <code class="small fw-bold" id="modal-payment-txn">...</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bảng món hàng -->
+                    <div class="card border rounded-3 overflow-hidden mb-3">
+                        <div class="card-header bg-light py-2 small fw-bold">Danh sách sản phẩm trong đơn</div>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-center">Số lượng</th>
+                                        <th class="text-end">Đơn giá</th>
+                                        <th class="text-end">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modal-order-items-body"></tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <td colspan="3" class="fw-bold text-end">Tổng tiền đơn hàng:</td>
+                                        <td class="fw-extrabold text-primary text-end fs-6" id="modal-order-total">0 ₫</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tùy chọn chuyển trạng thái nhanh -->
+                    <div class="p-3 rounded-3 border bg-white">
+                        <div class="small fw-bold mb-2"><i class="fa-solid fa-arrow-right-arrow-left me-1 text-primary"></i> Cập nhật tình trạng đơn hàng:</div>
+                        <div id="modal-status-actions" class="d-flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+</html>

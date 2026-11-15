@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tất cả sản phẩm — ShopMini</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-modern sticky-top">
+        <div class="container gap-3">
+            <a class="navbar-brand brand-logo" href="../index.html">
+                <span class="brand-icon"><i class="fa-solid fa-bag-shopping"></i></span>
+                <span>Shop<span class="text-primary">Mini</span></span>
+            </a>
+
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse flex-grow-0" id="mainNav">
+                <ul class="navbar-nav align-items-lg-center gap-lg-2 mt-3 mt-lg-0">
+                    <li class="nav-item"><a class="nav-link fw-semibold" href="../index.html">Trang chủ</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold active text-primary" href="products.html">Sản phẩm</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold" href="orders.html">Đơn hàng</a></li>
+                    <li class="nav-item">
+                        <a class="btn btn-light position-relative rounded-pill px-3 fw-semibold" href="cart.html">
+                            <i class="fa-solid fa-cart-shopping text-primary me-1"></i> Giỏ hàng
+                            <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item ms-lg-2" id="auth-nav-slot"></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-4">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a href="../index.html" class="text-decoration-none">Trang chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Tất cả sản phẩm</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            <!-- Sidebar Filter -->
+            <aside class="col-lg-3">
+                <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
+                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-layer-group text-primary me-2"></i>Danh mục sản phẩm</h6>
+                    <div id="sidebar-categories" class="list-group list-group-flush rounded-3">
+                        <div class="skeleton-box mb-2" style="height:36px;"></div>
+                        <div class="skeleton-box mb-2" style="height:36px;"></div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 p-3">
+                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-filter text-primary me-2"></i>Trạng thái kho</h6>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="filter-instock" onchange="applyCatalogFilters()">
+                        <label class="form-check-label small fw-semibold" for="filter-instock">Chỉ hiện sản phẩm còn hàng</label>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Product Catalog Grid -->
+            <section class="col-lg-9">
+                <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-5">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                                <input type="text" id="catalog-search" class="form-control border-start-0 bg-light" placeholder="Tìm theo tên hoặc mô tả..." oninput="applyCatalogFilters()">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="catalog-sort" class="form-select bg-light" onchange="applyCatalogFilters()">
+                                <option value="default">Sắp xếp: Mặc định</option>
+                                <option value="price-asc">Giá: Thấp đến Cao</option>
+                                <option value="price-desc">Giá: Cao đến Thấp</option>
+                                <option value="name-asc">Tên: A - Z</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 text-md-end">
+                            <span id="catalog-result-count" class="small text-muted fw-semibold">Đang tải...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="catalog-products" class="row g-4">
+                    <div class="col-md-4 col-sm-6"><div class="skeleton-box" style="height:290px;"></div></div>
+                    <div class="col-md-4 col-sm-6"><div class="skeleton-box" style="height:290px;"></div></div>
+                    <div class="col-md-4 col-sm-6"><div class="skeleton-box" style="height:290px;"></div></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/products.js"></script>
+</body>
+</html>
